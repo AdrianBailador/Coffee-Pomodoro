@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== Base Styles ========== */
+
+@layer base {
+  html {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  body {
+    @apply bg-cream-50 text-coffee-800 transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-coffee-900 text-coffee-100;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-coffee-100 dark:bg-coffee-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-coffee-300 dark:bg-coffee-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-coffee-400 dark:bg-coffee-500;
+  }
+}
+
+/* ========== Animations ========== */
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Steam animation */
+@keyframes steam {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scaleX(1);
+  }
+  15% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-20px) scaleX(1.2);
+  }
+  85% {
+    opacity: 0.3;
+  }
+}
+
+.animate-steam {
+  animation: steam 3s ease-in-out infinite;
+}
+
+.animate-steam-delay {
+  animation: steam 3s ease-in-out 1s infinite;
+}
+
+/* ========== Background Pattern ========== */
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(139, 90, 43, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(139, 90, 43, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark body::before {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 179, 71, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 179, 71, 0.02) 0%, transparent 50%);
+}
+
+/* ========== Coffee beans decoration ========== */
+
+.coffee-bean {
+  position: relative;
+}
+
+.coffee-bean::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.2) 45%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.2) 55%,
+    transparent 100%
+  );
+  border-radius: inherit;
+}
+
+/* ========== Glassmorphism effects ========== */
+
+.glass {
+  @apply bg-white/70 dark:bg-coffee-900/70 backdrop-blur-md;
+}
+
+.glass-card {
+  @apply bg-white/80 dark:bg-coffee-800/80 backdrop-blur-lg rounded-2xl border border-coffee-200/50 dark:border-coffee-700/50 shadow-lg;
+}
+
+/* ========== Focus styles ========== */
+
+@layer components {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-espresso-500 focus:ring-offset-2 focus:ring-offset-cream-50 dark:focus:ring-offset-coffee-900;
+  }
+}
+
+/* ========== Typography ========== */
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+}
+
+/* ========== Number font for timer ========== */
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
