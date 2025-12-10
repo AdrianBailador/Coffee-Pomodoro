@@ -6,6 +6,9 @@ using CaffePomodoro.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 // ========== Services ==========
 
 builder.Services.AddControllers();
@@ -74,12 +77,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
             "http://localhost:5173",
-            "http://localhost:3000",
-            builder.Configuration["Frontend:Url"] ?? "http://localhost:5173"
+            "https://adrianbailador.github.io"  
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
