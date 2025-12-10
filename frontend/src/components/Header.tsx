@@ -11,6 +11,18 @@ export function Header() {
   const [showSettings, setShowSettings] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const isGuest = localStorage.getItem('caffe-pomodoro-guest') === 'true';
+
+  const handleLogout = () => {
+    setShowMenu(false);
+    if (isGuest) {
+      localStorage.removeItem('caffe-pomodoro-guest');
+      window.location.reload();
+    } else {
+      logOut();
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -32,7 +44,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="font-display text-xl font-bold text-coffee-800 dark:text-coffee-100">
-                Coffee Pomodoro
+                Caffè Pomodoro
               </h1>
               <p className="text-xs text-coffee-500 dark:text-coffee-400 hidden sm:block">
                 Productivity with style
@@ -44,6 +56,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             {/* Theme Toggle */}
             <button
+              type="button"
               onClick={toggleTheme}
               aria-label={isDark ? 'Light mode' : 'Dark mode'}
               className="p-2 rounded-full bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
@@ -51,17 +64,18 @@ export function Header() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {/* User Menu / Login */}
+            {/* User Menu */}
             {loading ? (
               <div className="w-10 h-10 rounded-full bg-coffee-200 dark:bg-coffee-700 animate-pulse" />
-            ) : user ? (
+            ) : user || isGuest ? (
               <div className="relative" ref={menuRef}>
                 <button
+                  type="button"
                   onClick={() => setShowMenu(!showMenu)}
                   aria-label="User menu"
                   className="flex items-center gap-2 p-1 rounded-full hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-colors"
                 >
-                  {profile?.avatarUrl ? (
+                  {user && profile?.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
                       alt={profile.displayName || 'User'}
@@ -79,14 +93,32 @@ export function Header() {
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-coffee-800 rounded-xl shadow-xl border border-coffee-200 dark:border-coffee-700 py-2 animate-fade-in">
                     <div className="px-4 py-2 border-b border-coffee-200 dark:border-coffee-700">
                       <p className="font-medium text-coffee-800 dark:text-coffee-100 truncate">
-                        {profile?.displayName || 'User'}
+                        {user ? (profile?.displayName || 'User') : 'Guest'}
                       </p>
                       <p className="text-sm text-coffee-500 dark:text-coffee-400 truncate">
-                        {user.email}
+                        {user ? user.email : 'Not signed in'}
                       </p>
                     </div>
+
+                    {isGuest && !user && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMenu(false);
+                          signIn();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-espresso-600 dark:text-espresso-400 hover:bg-coffee-100 dark:hover:bg-coffee-700 transition-colors"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24">
+                          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        </svg>
+                        Sign in with Google
+                      </button>
+                    )}
                     
                     <button
+                      type="button"
                       onClick={() => {
                         setShowMenu(false);
                         setShowSettings(true);
@@ -98,45 +130,17 @@ export function Header() {
                     </button>
                     
                     <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        logOut();
-                      }}
+                      type="button"
+                      onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign out
+                      {isGuest && !user ? 'Exit Guest Mode' : 'Sign out'}
                     </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <button
-                onClick={signIn}
-                aria-label="Sign in with Google"
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-espresso-500 to-espresso-600 text-white font-medium hover:from-espresso-600 hover:to-espresso-700 transition-all shadow-md hover:shadow-lg"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Sign in</span>
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
