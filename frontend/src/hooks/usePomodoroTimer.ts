@@ -87,7 +87,7 @@ export function usePomodoroTimer() {
     }
   }, []);
 
-  const start = useCallback((taskId?: string) => {
+  const start = useCallback((_taskId?: string) => {
     requestNotificationPermission();
     setState(prev => ({
       ...prev,
