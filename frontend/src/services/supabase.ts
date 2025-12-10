@@ -14,17 +14,19 @@ export const supabase: SupabaseClient = createClient(
 
 // ========== Auth Functions ==========
 
-export async function signInWithGoogle() {
+export const signInWithGoogle = async () => {
+  const redirectUrl = import.meta.env.PROD 
+    ? 'https://adrianbailador.github.io/Coffee-Pomodoro/'
+    : 'http://localhost:5173/';
+    
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`
+      redirectTo: redirectUrl
     }
   });
-
-  if (error) throw error;
-  return data;
-}
+  return { data, error };
+};
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
