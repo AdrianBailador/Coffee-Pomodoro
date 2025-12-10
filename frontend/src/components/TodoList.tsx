@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Check, Circle, Coffee, ChevronDown, ChevronUp } from 'lucide-react';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Task {
   id: string;
   title: string;
-  completed: boolean;
-  pomodoros: number;
-  estimated: number;
+  is_completed: boolean;
+  completed_pomodoros: number;
+  estimated_pomodoros: number;
 }
 
 interface TodoListProps {
@@ -15,53 +17,145 @@ interface TodoListProps {
 }
 
 export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('caffe-pomodoro-tasks');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-  
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Load tasks from Supabase
   useEffect(() => {
-    localStorage.setItem('caffe-pomodoro-tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (user) {
+      loadTasks();
+    } else {
+      // Guest mode - use localStorage
+      const saved = localStorage.getItem('caffe-pomodoro-tasks');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Convert localStorage format to match Supabase format
+          setTasks(parsed.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            is_completed: t.completed || t.is_completed || false,
+            completed_pomodoros: t.pomodoros || t.completed_pomodoros || 0,
+            estimated_pomodoros: t.estimated || t.estimated_pomodoros || 1
+          })));
+        } catch {
+          setTasks([]);
+        }
+      }
+      setLoading(false);
+    }
+  }, [user]);
 
-  const handleAddTask = (e: React.FormEvent) => {
+  // Save to localStorage for guest mode
+  useEffect(() => {
+    if (!user && tasks.length > 0) {
+      localStorage.setItem('caffe-pomodoro-tasks', JSON.stringify(tasks));
+    }
+  }, [tasks, user]);
+
+  const loadTasks = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('todo_tasks')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      console.error('Error loading tasks:', error);
+    } else {
+      setTasks(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: newTaskTitle.trim(),
-      completed: false,
-      pomodoros: 0,
-      estimated: 1
-    };
+    if (user) {
+      // Logged in - save to Supabase
+      const { data, error } = await supabase
+        .from('todo_tasks')
+        .insert({
+          user_id: user.id,
+          title: newTaskTitle.trim(),
+          is_completed: false,
+          completed_pomodoros: 0,
+          estimated_pomodoros: 1,
+          display_order: tasks.length
+        })
+        .select()
+        .single();
 
-    setTasks(prev => [...prev, newTask]);
+      if (error) {
+        console.error('Error adding task:', error);
+      } else if (data) {
+        setTasks(prev => [...prev, data]);
+      }
+    } else {
+      // Guest mode - save to localStorage
+      const newTask: Task = {
+        id: Date.now().toString(),
+        title: newTaskTitle.trim(),
+        is_completed: false,
+        completed_pomodoros: 0,
+        estimated_pomodoros: 1
+      };
+      setTasks(prev => [...prev, newTask]);
+    }
+
     setNewTaskTitle('');
   };
 
-  const handleToggleComplete = (taskId: string) => {
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, completed: !t.completed } : t
+  const handleToggleComplete = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newStatus = !task.is_completed;
+
+    if (user) {
+      const { error } = await supabase
+        .from('todo_tasks')
+        .update({ 
+          is_completed: newStatus,
+          completed_at: newStatus ? new Date().toISOString() : null
+        })
+        .eq('id', taskId);
+
+      if (error) {
+        console.error('Error updating task:', error);
+        return;
+      }
+    }
+
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, is_completed: newStatus } : t
     ));
+
     if (taskId === selectedTaskId) {
       onSelectTask(undefined);
     }
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
+    if (user) {
+      const { error } = await supabase
+        .from('todo_tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) {
+        console.error('Error deleting task:', error);
+        return;
+      }
+    }
+
     setTasks(prev => prev.filter(t => t.id !== taskId));
+
     if (taskId === selectedTaskId) {
       onSelectTask(undefined);
     }
@@ -71,8 +165,19 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
     onSelectTask(selectedTaskId === taskId ? undefined : taskId);
   };
 
-  const activeTasks = tasks.filter(t => !t.completed);
-  const completedTasks = tasks.filter(t => t.completed);
+  const activeTasks = tasks.filter(t => !t.is_completed);
+  const completedTasks = tasks.filter(t => t.is_completed);
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-coffee-900 rounded-2xl shadow-lg p-8 border border-coffee-200 dark:border-coffee-700">
+        <div className="flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-coffee-200 border-t-espresso-500 rounded-full animate-spin"></div>
+          <span className="ml-2 text-coffee-500">Loading tasks...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-coffee-900 rounded-2xl shadow-lg overflow-hidden border border-coffee-200 dark:border-coffee-700">
@@ -134,12 +239,12 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                   >
                     <Circle className="w-5 h-5" />
                   </button>
-                  
+
                   <div className="flex-1">
                     <span className="text-coffee-800 dark:text-coffee-100">{task.title}</span>
                     <div className="text-xs text-coffee-500 flex items-center gap-1 mt-1">
                       <Coffee className="w-3 h-3" />
-                      {task.pomodoros}/{task.estimated}
+                      {task.completed_pomodoros}/{task.estimated_pomodoros}
                     </div>
                   </div>
 
@@ -170,7 +275,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                 {showCompleted ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 Completed ({completedTasks.length})
               </button>
-              
+
               {showCompleted && (
                 <ul className="mt-2 space-y-2">
                   {completedTasks.map((task) => (
