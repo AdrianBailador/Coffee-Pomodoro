@@ -36,7 +36,7 @@ export function LoginScreen() {
             <Coffee className="w-6 h-6 text-white" />
           </div>
           <h1 className="font-display text-xl font-bold text-coffee-800 dark:text-coffee-100">
-            Caffè Pomodoro
+            Coffee Pomodoro
           </h1>
         </div>
       </header>

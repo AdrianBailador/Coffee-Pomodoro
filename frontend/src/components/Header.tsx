@@ -44,7 +44,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="font-display text-xl font-bold text-coffee-800 dark:text-coffee-100">
-                Caffè Pomodoro
+                Coffee Pomodoro
               </h1>
               <p className="text-xs text-coffee-500 dark:text-coffee-400 hidden sm:block">
                 Productivity with style

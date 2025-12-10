@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://adrianbailador.github.io/caffe-pomodoro",
+"homepage": "https://adrianbailador.github.io/coffee-pomodoro",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
