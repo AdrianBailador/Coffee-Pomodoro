@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="coffeeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513"/>
+      <stop offset="100%" style="stop-color:#3d2520"/>
+    </linearGradient>
+    <linearGradient id="cupGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f5f5f5"/>
+      <stop offset="50%" style="stop-color:#e8e8e8"/>
+      <stop offset="100%" style="stop-color:#d0d0d0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Saucer -->
+  <ellipse cx="50" cy="88" rx="40" ry="8" fill="#d0d0d0"/>
+  <ellipse cx="50" cy="86" rx="35" ry="6" fill="#e8e8e8"/>
+  
+  <!-- Cup body -->
+  <path d="M20 35 Q20 80 50 82 Q80 80 80 35 L80 30 L20 30 Z" fill="url(#cupGrad)"/>
+  
+  <!-- Cup rim -->
+  <ellipse cx="50" cy="30" rx="30" ry="8" fill="#f5f5f5"/>
+  <ellipse cx="50" cy="30" rx="26" ry="6" fill="#8B4513"/>
+  
+  <!-- Coffee surface -->
+  <ellipse cx="50" cy="32" rx="24" ry="5" fill="#6B3410"/>
+  
+  <!-- Handle -->
+  <path d="M80 40 Q95 45 95 55 Q95 65 80 70" fill="none" stroke="#d0d0d0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M80 42 Q92 46 92 55 Q92 64 80 68" fill="none" stroke="#e8e8e8" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Steam -->
+  <path d="M35 20 Q32 10 38 5" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <path d="M50 18 Q53 8 48 2" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <path d="M65 20 Q68 10 62 5" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+</svg>

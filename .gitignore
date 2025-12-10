@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+bin/
+obj/
+
+# Environment variables (IMPORTANTE - contienen secretos)
+.env
+.env.local
+.env.production
+appsettings.Development.json
+appsettings.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Misc
+*.local
+.cache/
