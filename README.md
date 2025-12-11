@@ -1,17 +1,16 @@
 # ☕ Coffee Pomodoro
 
-Una aplicación de productividad que combina la técnica Pomodoro con una experiencia visual única: una taza de café que se llena mientras trabajas.
+A productivity application that combines the Pomodoro technique with a unique visual experience: a coffee cup that fills up as you work.
 
-## 🎯 Características
+## 🎯 Features
 
-- **Timer Pomodoro Visual**: Una taza de café animada que se llena durante cada sesión
-- **Lista de Tareas**: Gestiona tus tareas con un To-Do integrado
-- **Modo Oscuro/Claro**: Cambia entre temas según tu preferencia
-- **Autenticación con Google**: Login seguro via Supabase Auth
-- **Sincronización en la nube**: Tus datos siempre disponibles
+- **Visual Pomodoro Timer**: An animated coffee cup that fills during each session
+- **Task List**: Manage your tasks with an integrated To-Do list
+- **Dark/Light Mode**: Switch between themes according to your preference
+- **Google Authentication**: Secure login via Supabase Auth
+- **Cloud Synchronisation**: Your data always available
 
-## 🏗️ Arquitectura
-
+## 🏗️ Architecture
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         Frontend                             │
@@ -48,21 +47,20 @@ Una aplicación de productividad que combina la técnica Pomodoro con una experi
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 📁 Estructura del Proyecto
-
+## 📁 Project Structure
 ```
-caffe-pomodoro/
-├── backend/                    # API .NET 8
-│   ├── CaffePomodoro.Api/      # Proyecto principal
-│   │   ├── Controllers/        # Endpoints REST
-│   │   ├── Services/           # Lógica de negocio
-│   │   ├── Models/             # Entidades y DTOs
-│   │   └── Infrastructure/     # Configuración Supabase
-│   └── CaffePomodoro.sln       # Solución
+coffee-pomodoro/
+├── backend/                    # .NET 8 API
+│   ├── CaffePomodoro.Api/      # Main project
+│   │   ├── Controllers/        # REST endpoints
+│   │   ├── Services/           # Business logic
+│   │   ├── Models/             # Entities and DTOs
+│   │   └── Infrastructure/     # Supabase configuration
+│   └── CaffePomodoro.sln       # Solution
 │
-├── frontend/                   # App React
+├── frontend/                   # React App
 │   ├── src/
-│   │   ├── components/         # Componentes UI
+│   │   ├── components/         # UI components
 │   │   ├── contexts/           # React Contexts
 │   │   ├── hooks/              # Custom Hooks
 │   │   ├── services/           # API calls
@@ -72,34 +70,32 @@ caffe-pomodoro/
 └── README.md
 ```
 
-## 🚀 Configuración
+## 🚀 Setup
 
 ### 1. Supabase Setup
 
-1. Crea un proyecto en [Supabase](https://supabase.com)
-2. Ejecuta el SQL de `database/schema.sql`
-3. Configura Google OAuth en Authentication > Providers
-4. Copia las credenciales
+1. Create a project on [Supabase](https://supabase.com)
+2. Run the SQL from `database/schema.sql`
+3. Configure Google OAuth in Authentication > Providers
+4. Copy the credentials
 
 ### 2. Backend (.NET)
-
 ```bash
 cd backend/CaffePomodoro.Api
-# Configura appsettings.json con tus credenciales
+# Configure appsettings.json with your credentials
 dotnet restore
 dotnet run
 ```
 
 ### 3. Frontend (React)
-
 ```bash
 cd frontend
 npm install
-# Configura .env con tus credenciales
+# Configure .env with your credentials
 npm run dev
 ```
 
-## 🔑 Variables de Entorno
+## 🔑 Environment Variables
 
 ### Backend (appsettings.json)
 ```json
@@ -119,6 +115,11 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_API_URL=http://localhost:5000
 ```
 
-## 📝 Licencia
+## 🌐 Live Demo
+
+- **Frontend**: https://adrianbailador.github.io/Coffee-Pomodoro/
+- **Backend**: https://coffee-pomodoro.onrender.com
+
+## 📝 Licence
 
 MIT
