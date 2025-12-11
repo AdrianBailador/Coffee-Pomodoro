@@ -10,9 +10,6 @@ interface TimerAlertProps {
 export function TimerAlert({ isOpen, sessionType, onClose }: TimerAlertProps) {
   if (!isOpen) return null;
 
-  const isWork = sessionType === SessionType.Work;
-  const isShortBreak = sessionType === SessionType.ShortBreak;
-
   const config = {
     [SessionType.Work]: {
       icon: <Coffee className="w-12 h-12" />,
@@ -74,7 +71,7 @@ export function TimerAlert({ isOpen, sessionType, onClose }: TimerAlertProps) {
           onClick={onClose}
           className={`w-full py-3 rounded-xl bg-gradient-to-r ${color} text-white font-medium shadow-lg hover:shadow-xl transition-all`}
         >
-          {isWork ? 'Start Break' : 'Start Working'}
+          {sessionType === SessionType.Work ? 'Start Break' : 'Start Working'}
         </button>
       </div>
     </div>
