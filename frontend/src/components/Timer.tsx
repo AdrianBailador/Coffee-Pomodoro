@@ -270,118 +270,163 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
           </button>
         </div>
 
-        {/* Settings Panel */}
-        <div className="w-full max-w-md mt-4">
+{/* Settings Panel */}
+<div className="w-full max-w-md mt-4">
+  <button
+    type="button"
+    onClick={() => setShowSettings(!showSettings)}
+    className="w-full flex items-center justify-center gap-2 py-2 text-coffee-600 dark:text-coffee-300 hover:text-espresso-500 transition-colors"
+  >
+    <Settings className="w-4 h-4" />
+    <span className="text-sm font-medium">Timer Settings</span>
+    {showSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+  </button>
+
+  {showSettings && (
+    <div className="mt-4 p-4 bg-coffee-50 dark:bg-coffee-800 rounded-xl space-y-4">
+      {/* Work Duration */}
+      <div className="flex items-center justify-between">
+        <label htmlFor="settings-work" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
+          <Coffee className="w-4 h-4 text-espresso-500" />
+          Work
+        </label>
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowSettings(!showSettings)}
-            className="w-full flex items-center justify-center gap-2 py-2 text-coffee-600 dark:text-coffee-300 hover:text-espresso-500 transition-colors"
+            aria-label="Decrease work duration"
+            onClick={() => setSettings({ ...settings, workDuration: Math.max(1, settings.workDuration - 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
           >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Timer Settings</span>
-            {showSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <Minus className="w-4 h-4 mx-auto" />
           </button>
-
-          {showSettings && (
-            <div className="mt-4 p-4 bg-coffee-50 dark:bg-coffee-800 rounded-xl space-y-4">
-              {/* Work Duration */}
-              <div className="flex items-center justify-between">
-                <label htmlFor="settings-work" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
-                  <Coffee className="w-4 h-4 text-espresso-500" />
-                  Work
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label="Decrease work duration"
-                    onClick={() => setSettings({ ...settings, workDuration: Math.max(1, settings.workDuration - 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Minus className="w-4 h-4 mx-auto" />
-                  </button>
-                  <span id="settings-work" className="w-12 text-center font-medium text-coffee-800 dark:text-coffee-100">
-                    {settings.workDuration}m
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Increase work duration"
-                    onClick={() => setSettings({ ...settings, workDuration: Math.min(60, settings.workDuration + 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Plus className="w-4 h-4 mx-auto" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Short Break */}
-              <div className="flex items-center justify-between">
-                <label htmlFor="settings-short" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
-                  <Leaf className="w-4 h-4 text-emerald-500" />
-                  Short Break
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label="Decrease short break duration"
-                    onClick={() => setSettings({ ...settings, shortBreak: Math.max(1, settings.shortBreak - 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Minus className="w-4 h-4 mx-auto" />
-                  </button>
-                  <span id="settings-short" className="w-12 text-center font-medium text-coffee-800 dark:text-coffee-100">
-                    {settings.shortBreak}m
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Increase short break duration"
-                    onClick={() => setSettings({ ...settings, shortBreak: Math.min(30, settings.shortBreak + 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Plus className="w-4 h-4 mx-auto" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Long Break */}
-              <div className="flex items-center justify-between">
-                <label htmlFor="settings-long" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
-                  <Sunrise className="w-4 h-4 text-sky-500" />
-                  Long Break
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label="Decrease long break duration"
-                    onClick={() => setSettings({ ...settings, longBreak: Math.max(1, settings.longBreak - 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Minus className="w-4 h-4 mx-auto" />
-                  </button>
-                  <span id="settings-long" className="w-12 text-center font-medium text-coffee-800 dark:text-coffee-100">
-                    {settings.longBreak}m
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Increase long break duration"
-                    onClick={() => setSettings({ ...settings, longBreak: Math.min(60, settings.longBreak + 1) })}
-                    className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
-                  >
-                    <Plus className="w-4 h-4 mx-auto" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <button
-                type="button"
-                onClick={handleSaveSettings}
-                className="w-full py-2 mt-2 bg-espresso-500 text-white rounded-lg hover:bg-espresso-600 transition-colors font-medium"
-              >
-                Save Settings
-              </button>
-            </div>
-          )}
+          <div className="relative">
+            <input
+              id="settings-work"
+              type="text"
+              inputMode="numeric"
+              value={settings.workDuration}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setSettings({ ...settings, workDuration: value === '' ? '' : parseInt(value) });
+              }}
+              onBlur={(e) => {
+                const value = parseInt(e.target.value) || 25;
+                setSettings({ ...settings, workDuration: Math.min(60, Math.max(1, value)) });
+              }}
+              className="w-14 text-center font-medium text-coffee-800 dark:text-coffee-100 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-600 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-espresso-500"
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-coffee-400">m</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Increase work duration"
+            onClick={() => setSettings({ ...settings, workDuration: Math.min(60, (parseInt(settings.workDuration) || 0) + 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
+          >
+            <Plus className="w-4 h-4 mx-auto" />
+          </button>
         </div>
+      </div>
+
+      {/* Short Break */}
+      <div className="flex items-center justify-between">
+        <label htmlFor="settings-short" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
+          <Leaf className="w-4 h-4 text-emerald-500" />
+          Short Break
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Decrease short break duration"
+            onClick={() => setSettings({ ...settings, shortBreak: Math.max(1, settings.shortBreak - 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
+          >
+            <Minus className="w-4 h-4 mx-auto" />
+          </button>
+          <div className="relative">
+            <input
+              id="settings-short"
+              type="text"
+              inputMode="numeric"
+              value={settings.shortBreak}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setSettings({ ...settings, shortBreak: value === '' ? '' : parseInt(value) });
+              }}
+              onBlur={(e) => {
+                const value = parseInt(e.target.value) || 5;
+                setSettings({ ...settings, shortBreak: Math.min(30, Math.max(1, value)) });
+              }}
+              className="w-14 text-center font-medium text-coffee-800 dark:text-coffee-100 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-600 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-espresso-500"
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-coffee-400">m</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Increase short break duration"
+            onClick={() => setSettings({ ...settings, shortBreak: Math.min(30, (parseInt(settings.shortBreak) || 0) + 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
+          >
+            <Plus className="w-4 h-4 mx-auto" />
+          </button>
+        </div>
+      </div>
+
+      {/* Long Break */}
+      <div className="flex items-center justify-between">
+        <label htmlFor="settings-long" className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-200">
+          <Sunrise className="w-4 h-4 text-sky-500" />
+          Long Break
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Decrease long break duration"
+            onClick={() => setSettings({ ...settings, longBreak: Math.max(1, settings.longBreak - 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
+          >
+            <Minus className="w-4 h-4 mx-auto" />
+          </button>
+          <div className="relative">
+            <input
+              id="settings-long"
+              type="text"
+              inputMode="numeric"
+              value={settings.longBreak}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setSettings({ ...settings, longBreak: value === '' ? '' : parseInt(value) });
+              }}
+              onBlur={(e) => {
+                const value = parseInt(e.target.value) || 15;
+                setSettings({ ...settings, longBreak: Math.min(60, Math.max(1, value)) });
+              }}
+              className="w-14 text-center font-medium text-coffee-800 dark:text-coffee-100 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-600 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-espresso-500"
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-coffee-400">m</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Increase long break duration"
+            onClick={() => setSettings({ ...settings, longBreak: Math.min(60, (parseInt(settings.longBreak) || 0) + 1) })}
+            className="w-8 h-8 rounded-full bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600"
+          >
+            <Plus className="w-4 h-4 mx-auto" />
+          </button>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <button
+        type="button"
+        onClick={handleSaveSettings}
+        className="w-full py-2 mt-2 bg-espresso-500 text-white rounded-lg hover:bg-espresso-600 transition-colors font-medium"
+      >
+        Save Settings
+      </button>
+    </div>
+  )}
+</div>
       </div>
     </>
   );
