@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from './components/Header';
 import { Timer } from './components/Timer';
 import { TodoList } from './components/TodoList';
+import { ProductivityCalendar } from './components/ProductivityCalendar';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -11,7 +12,6 @@ function AppContent() {
   const { user, loading } = useAuth();
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>();
 
-  // Check if guest mode
   const isGuest = localStorage.getItem('caffe-pomodoro-guest') === 'true';
 
   const handleSessionComplete = (sessionType: SessionType) => {
@@ -20,7 +20,6 @@ function AppContent() {
     }
   };
 
-  // Show loading
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cream-50 via-cream-100 to-coffee-100 dark:from-coffee-900 dark:via-coffee-900 dark:to-espresso-900 flex items-center justify-center">
@@ -32,7 +31,6 @@ function AppContent() {
     );
   }
 
-  // Show login if not authenticated and not guest
   if (!user && !isGuest) {
     return <LoginScreen />;
   }
@@ -51,44 +49,15 @@ function AppContent() {
             />
           </section>
 
-          {/* Todo List Section */}
+          {/* Sidebar */}
           <aside className="space-y-4">
             <TodoList 
               selectedTaskId={selectedTaskId}
               onSelectTask={setSelectedTaskId}
             />
             
-            {/* Stats Card */}
-            <div className="glass-card p-4">
-              <h3 className="font-display text-lg font-semibold text-coffee-800 dark:text-coffee-100 mb-3">
-                Today's Statistics
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-coffee-50 dark:bg-coffee-800 rounded-lg">
-                  <p className="text-2xl font-bold text-espresso-600 dark:text-espresso-400">0</p>
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400">Pomodoros</p>
-                </div>
-                <div className="text-center p-3 bg-coffee-50 dark:bg-coffee-800 rounded-lg">
-                  <p className="text-2xl font-bold text-espresso-600 dark:text-espresso-400">0</p>
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400">Minutes</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tips Card */}
-            <div className="glass-card p-4">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">💡</span>
-                <div>
-                  <h4 className="font-medium text-coffee-800 dark:text-coffee-100 text-sm">
-                    Tip of the Day
-                  </h4>
-                  <p className="text-xs text-coffee-600 dark:text-coffee-300 mt-1">
-                    Take a 5-minute break after each pomodoro to maintain optimal focus.
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Productivity Calendar */}
+            <ProductivityCalendar />
 
             {/* Guest Mode Banner */}
             {isGuest && !user && (
