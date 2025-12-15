@@ -4,6 +4,7 @@ import { SessionType } from '../types';
 import { CoffeeCup } from './CoffeeCup';
 import { TimerAlert } from './TimerAlert';
 import { usePomodoroTimer } from '../hooks/usePomodoroTimer';
+import { useNotificationSound } from '../hooks/useNotificationSound';
 
 interface TimerProps {
   selectedTaskId?: string;
@@ -25,6 +26,7 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
     subtractTime
   } = usePomodoroTimer();
 
+  const { playSound } = useNotificationSound();
   const [showSettings, setShowSettings] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [completedSessionType, setCompletedSessionType] = useState<SessionType>(SessionType.Work);
@@ -45,8 +47,9 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
     if (state.status === 'completed') {
       setCompletedSessionType(state.sessionType);
       setShowAlert(true);
-    }
-  }, [state.status, state.sessionType]);
+      playSound(); 
+  }
+}, [state.status, state.sessionType, playSound]);
 
   const handleCloseAlert = () => {
     setShowAlert(false);
