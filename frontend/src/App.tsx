@@ -7,6 +7,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SessionType } from './types';
+import { ConnectionStatus } from './components/ConnectionStatus';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -75,6 +76,8 @@ function AppContent() {
       <footer className="text-center py-6 text-sm text-coffee-500 dark:text-coffee-400">
         <p>Made with ☕ and 💜 by Adrian</p>
       </footer>
+        {/* Connection Status */}
+      <ConnectionStatus />
     </div>
   );
 }
