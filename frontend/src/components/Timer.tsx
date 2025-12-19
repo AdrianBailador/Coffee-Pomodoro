@@ -26,7 +26,8 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
     subtractTime
   } = usePomodoroTimer();
 
-  const { playSound } = useNotificationSound();
+  const { sendBrowserNotification, requestNotificationPermission } = useNotificationSound();
+  
   const [showSettings, setShowSettings] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [completedSessionType, setCompletedSessionType] = useState<SessionType>(SessionType.Work);
@@ -42,14 +43,18 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
     return { workDuration: 25, shortBreak: 5, longBreak: 15, sessionsBeforeLongBreak: 4 };
   });
 
-  // Mostrar alerta cuando el timer se completa
-  useEffect(() => {
-    if (state.status === 'completed') {
-      setCompletedSessionType(state.sessionType);
-      setShowAlert(true);
-      playSound(); 
+useEffect(() => {
+  if (state.status === 'completed') {
+    setCompletedSessionType(state.sessionType);
+    setShowAlert(true);
+    
+    // Notificación con sonido
+    const isWork = state.sessionType === SessionType.Work;
+    const title = isWork ? '☕ Pomodoro Complete!' : '🌿 Break Over!';
+    const body = isWork ? 'Time for a well-deserved break!' : 'Ready to get back to work?';
+    sendBrowserNotification(title, body);
   }
-}, [state.status, state.sessionType, playSound]);
+}, [state.status, state.sessionType, sendBrowserNotification]);
 
   const handleCloseAlert = () => {
     setShowAlert(false);
@@ -60,9 +65,10 @@ export function Timer({ selectedTaskId, onSessionComplete }: TimerProps) {
   const isIdle = state.status === 'idle';
   const isCompleted = state.status === 'completed';
 
-  const handleStart = () => {
-    start(selectedTaskId);
-  };
+const handleStart = () => {
+  requestNotificationPermission();
+  start(selectedTaskId);
+};
 
   const handleSkip = () => {
     if (state.sessionType === SessionType.Work) {

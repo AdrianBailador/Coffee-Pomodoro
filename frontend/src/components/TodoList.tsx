@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, Circle, Coffee, ChevronDown, ChevronUp, Calendar, Clock, FileText, X } from 'lucide-react';
+import { Plus, Trash2, Check, Circle, Coffee, ChevronDown, ChevronUp, Calendar, Clock, FileText, X, Sparkles, Tag } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getTaskSuggestions } from '../services/aiService';
 
 interface Task {
   id: string;
@@ -12,6 +13,9 @@ interface Task {
   due_date: string | null;
   duration_days: number;
   notes: string | null;
+  tags: string[];
+  category: string;
+  priority: string;
 }
 
 interface TodoListProps {
@@ -26,12 +30,25 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [newTaskDuration, setNewTaskDuration] = useState(1);
   const [newTaskNotes, setNewTaskNotes] = useState('');
+  const [newTaskTags, setNewTaskTags] = useState<string[]>([]);
+  const [newTaskCategory, setNewTaskCategory] = useState('Other');
+  const [newTaskPriority, setNewTaskPriority] = useState('Medium');
+  const [newTaskPomodoros, setNewTaskPomodoros] = useState(1);
+  const [customTag, setCustomTag] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState('');
+
+  // AI Suggestions (stored separately until user clicks)
+  const [aiSuggestedTags, setAiSuggestedTags] = useState<string[]>([]);
+  const [aiSuggestedCategory, setAiSuggestedCategory] = useState('');
+  const [aiSuggestedPriority, setAiSuggestedPriority] = useState('');
+  const [aiSuggestedPomodoros, setAiSuggestedPomodoros] = useState(0);
 
   const isGuest = localStorage.getItem('caffe-pomodoro-guest') === 'true';
 
@@ -73,6 +90,24 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
     setLoading(false);
   };
 
+  const handleGetAISuggestions = async () => {
+    if (!newTaskTitle.trim()) return;
+
+    setAiLoading(true);
+    try {
+      const suggestions = await getTaskSuggestions(newTaskTitle);
+      // Store suggestions without applying them
+      setAiSuggestedTags(suggestions.tags);
+      setAiSuggestedCategory(suggestions.category);
+      setAiSuggestedPriority(suggestions.priority);
+      setAiSuggestedPomodoros(suggestions.estimatedPomodoros);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error getting AI suggestions:', error);
+    }
+    setAiLoading(false);
+  };
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
@@ -81,10 +116,13 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
       title: newTaskTitle.trim(),
       is_completed: false,
       completed_pomodoros: 0,
-      estimated_pomodoros: 1,
+      estimated_pomodoros: newTaskPomodoros,
       due_date: newTaskDueDate || null,
       duration_days: newTaskDuration,
-      notes: newTaskNotes.trim() || null
+      notes: newTaskNotes.trim() || null,
+      tags: newTaskTags,
+      category: newTaskCategory,
+      priority: newTaskPriority
     };
 
     if (user) {
@@ -111,11 +149,25 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
       setTasks(prev => [...prev, taskWithId]);
     }
 
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewTaskTitle('');
     setNewTaskDueDate('');
     setNewTaskDuration(1);
     setNewTaskNotes('');
+    setNewTaskTags([]);
+    setNewTaskCategory('Other');
+    setNewTaskPriority('Medium');
+    setNewTaskPomodoros(1);
     setShowAddForm(false);
+    setShowSuggestions(false);
+    setCustomTag('');
+    setAiSuggestedTags([]);
+    setAiSuggestedCategory('');
+    setAiSuggestedPriority('');
+    setAiSuggestedPomodoros(0);
   };
 
   const handleToggleComplete = async (taskId: string) => {
@@ -127,7 +179,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
     if (user) {
       const { error } = await supabase
         .from('todo_tasks')
-        .update({ 
+        .update({
           is_completed: newStatus,
           completed_at: newStatus ? new Date().toISOString() : null
         })
@@ -200,25 +252,45 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
     setEditingNotes('');
   };
 
+  const removeTag = (tagToRemove: string) => {
+    setNewTaskTags(prev => prev.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleAddCustomTag = () => {
+    if (customTag.trim() && !newTaskTags.includes(customTag.trim())) {
+      setNewTaskTags(prev => [...prev, customTag.trim()]);
+      setCustomTag('');
+    }
+  };
+
   const formatDueDate = (date: string | null) => {
     if (!date) return null;
-    
+
     const dueDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
-    
+
     const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return { text: 'Overdue', color: 'text-red-500' };
     if (diffDays === 0) return { text: 'Today', color: 'text-amber-500' };
     if (diffDays === 1) return { text: 'Tomorrow', color: 'text-blue-500' };
     if (diffDays <= 7) return { text: `${diffDays} days`, color: 'text-emerald-500' };
-    
-    return { 
-      text: dueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), 
-      color: 'text-coffee-500' 
+
+    return {
+      text: dueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      color: 'text-coffee-500'
     };
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      case 'Medium': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'Low': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+      default: return 'bg-coffee-100 text-coffee-700 dark:bg-coffee-800 dark:text-coffee-300';
+    }
   };
 
   const activeTasks = tasks.filter(t => !t.is_completed);
@@ -254,7 +326,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <textarea
               value={editingNotes}
               onChange={(e) => setEditingNotes(e.target.value)}
@@ -263,7 +335,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
               aria-label="Task notes"
               className="w-full px-4 py-3 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 focus:outline-none focus:ring-2 focus:ring-espresso-500 resize-none"
             />
-            
+
             <div className="flex gap-2">
               <button
                 onClick={handleSaveNotes}
@@ -310,19 +382,250 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
             </button>
           ) : (
             <form onSubmit={handleAddTask} className="space-y-3 p-4 bg-coffee-50 dark:bg-coffee-800 rounded-xl">
-              {/* Task Title */}
-              <div>
-                <label htmlFor="new-task-title" className="sr-only">Task name</label>
-                <input
-                  id="new-task-title"
-                  type="text"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="Task name..."
-                  autoFocus
-                  aria-label="Task name"
-                  className="w-full px-4 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 focus:outline-none focus:ring-2 focus:ring-espresso-500"
-                />
+              {/* Task Title + AI Button */}
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label htmlFor="new-task-title" className="sr-only">Task name</label>
+                  <input
+                    id="new-task-title"
+                    type="text"
+                    value={newTaskTitle}
+                    onChange={(e) => {
+                      setNewTaskTitle(e.target.value);
+                      setShowSuggestions(false);
+                    }}
+                    placeholder="Task name..."
+                    autoFocus
+                    aria-label="Task name"
+                    className="w-full px-4 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGetAISuggestions}
+                  disabled={!newTaskTitle.trim() || aiLoading}
+                  className="px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white disabled:opacity-50 hover:from-purple-600 hover:to-indigo-600 transition-all flex items-center gap-1"
+                  aria-label="Get AI suggestions"
+                >
+                  {aiLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {/* AI Suggestions (click to apply) */}
+              {showSuggestions && (aiSuggestedTags.length > 0 || aiSuggestedCategory || aiSuggestedPriority || aiSuggestedPomodoros > 0) && (
+                <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg border border-purple-200 dark:border-purple-800 space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-purple-700 dark:text-purple-300">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="font-medium">AI Suggestions (click to apply)</span>
+                  </div>
+
+                  {/* Suggested Tags */}
+                  {aiSuggestedTags.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-purple-600 dark:text-purple-400">Tags:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {aiSuggestedTags.map((tag, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              if (!newTaskTags.includes(tag)) {
+                                setNewTaskTags(prev => [...prev, tag]);
+                              }
+                              setAiSuggestedTags(prev => prev.filter(t => t !== tag));
+                            }}
+                            className="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-600 hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors"
+                          >
+                            + {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Suggested Category, Priority, Pomodoros */}
+                  <div className="flex flex-wrap gap-2">
+                    {aiSuggestedCategory && aiSuggestedCategory !== newTaskCategory && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewTaskCategory(aiSuggestedCategory);
+                          setAiSuggestedCategory('');
+                        }}
+                        className="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-600 hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors"
+                      >
+                        + 📁 {aiSuggestedCategory}
+                      </button>
+                    )}
+
+                    {aiSuggestedPriority && aiSuggestedPriority !== newTaskPriority && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewTaskPriority(aiSuggestedPriority);
+                          setAiSuggestedPriority('');
+                        }}
+                        className="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-600 hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors"
+                      >
+                        + ⚡ {aiSuggestedPriority}
+                      </button>
+                    )}
+
+                    {aiSuggestedPomodoros > 0 && aiSuggestedPomodoros !== newTaskPomodoros && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewTaskPomodoros(aiSuggestedPomodoros);
+                          setAiSuggestedPomodoros(0);
+                        }}
+                        className="px-2 py-1 text-xs rounded-full bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-600 hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors"
+                      >
+                        + 🍅 {aiSuggestedPomodoros} pomodoro{aiSuggestedPomodoros > 1 ? 's' : ''}
+                      </button>
+                    )}
+
+                    {/* Apply All Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewTaskTags(prev => [...prev, ...aiSuggestedTags.filter(t => !prev.includes(t))]);
+                        if (aiSuggestedCategory) setNewTaskCategory(aiSuggestedCategory);
+                        if (aiSuggestedPriority) setNewTaskPriority(aiSuggestedPriority);
+                        if (aiSuggestedPomodoros > 0) setNewTaskPomodoros(aiSuggestedPomodoros);
+                        setAiSuggestedTags([]);
+                        setAiSuggestedCategory('');
+                        setAiSuggestedPriority('');
+                        setAiSuggestedPomodoros(0);
+                      }}
+                      className="px-3 py-1 text-xs rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors font-medium"
+                    >
+                      Apply All
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tags Section */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400">
+                  <Tag className="w-3 h-3" />
+                  Tags
+                </label>
+
+                {/* Selected Tags */}
+                {newTaskTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {newTaskTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-espresso-100 dark:bg-espresso-800 text-espresso-700 dark:text-espresso-200 border border-espresso-200 dark:border-espresso-600"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="hover:text-red-500"
+                          aria-label={`Remove tag ${tag}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Quick Tags */}
+                <div className="flex flex-wrap gap-1">
+                  {['💼 Work', '📚 Study', '🏠 Home', '💪 Health', '📧 Email', '👥 Meeting', '🛒 Shopping', '💰 Finance', '🎨 Creative', '🔧 Maintenance'].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        if (!newTaskTags.includes(tag)) {
+                          setNewTaskTags(prev => [...prev, tag]);
+                        }
+                      }}
+                      disabled={newTaskTags.includes(tag)}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${newTaskTags.includes(tag)
+                        ? 'bg-coffee-200 dark:bg-coffee-700 text-coffee-400 dark:text-coffee-500 border-coffee-200 dark:border-coffee-700 cursor-not-allowed'
+                        : 'bg-white dark:bg-coffee-900 text-coffee-600 dark:text-coffee-300 border-coffee-200 dark:border-coffee-600 hover:border-espresso-500 hover:text-espresso-500'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Tag Input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomTag();
+                      }
+                    }}
+                    placeholder="Add custom tag..."
+                    aria-label="Custom tag"
+                    className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomTag}
+                    disabled={!customTag.trim()}
+                    className="px-3 py-1.5 text-sm rounded-lg bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600 disabled:opacity-50 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Priority & Category Row */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label htmlFor="new-task-priority" className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 mb-1">
+                    ⚡ Priority
+                  </label>
+                  <select
+                    id="new-task-priority"
+                    value={newTaskPriority}
+                    onChange={(e) => setNewTaskPriority(e.target.value)}
+                    aria-label="Priority"
+                    className="w-full px-3 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="new-task-category" className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 mb-1">
+                    📁 Category
+                  </label>
+                  <select
+                    id="new-task-category"
+                    value={newTaskCategory}
+                    onChange={(e) => setNewTaskCategory(e.target.value)}
+                    aria-label="Category"
+                    className="w-full px-3 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                  >
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Study">Study</option>
+                    <option value="Health">Health</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Home">Home</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
 
               {/* Notes */}
@@ -342,10 +645,9 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                 />
               </div>
 
-              {/* Due Date & Duration Row */}
-              <div className="flex gap-3">
-                {/* Due Date */}
-                <div className="flex-1">
+              {/* Due Date & Pomodoros Row */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <div className="w-full sm:flex-1 overflow-hidden">
                   <label htmlFor="new-task-due-date" className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 mb-1">
                     <Calendar className="w-3 h-3" />
                     Due date
@@ -357,29 +659,27 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                     onChange={(e) => setNewTaskDueDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
                     aria-label="Due date"
-                    className="w-full px-3 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                    className="w-full box-border px-3 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500"
+                    style={{ maxWidth: '100%' }}
                   />
                 </div>
-
-                {/* Duration */}
-                <div className="w-24">
-                  <label htmlFor="new-task-duration" className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 mb-1">
-                    <Clock className="w-3 h-3" />
-                    Days
+                <div className="w-full sm:flex-1">
+                  <label htmlFor="new-task-pomodoros" className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 mb-1">
+                    <Coffee className="w-3 h-3" />
+                    Pomodoros
                   </label>
                   <input
-                    id="new-task-duration"
+                    id="new-task-pomodoros"
                     type="number"
-                    value={newTaskDuration}
-                    onChange={(e) => setNewTaskDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                    value={newTaskPomodoros}
+                    onChange={(e) => setNewTaskPomodoros(Math.max(1, parseInt(e.target.value) || 1))}
                     min="1"
-                    max="30"
-                    aria-label="Duration in days"
+                    max="20"
+                    aria-label="Estimated pomodoros"
                     className="w-full px-3 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-900 text-coffee-800 dark:text-coffee-100 text-sm focus:outline-none focus:ring-2 focus:ring-espresso-500"
                   />
                 </div>
               </div>
-
               {/* Buttons */}
               <div className="flex gap-2">
                 <button
@@ -391,13 +691,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setNewTaskTitle('');
-                    setNewTaskDueDate('');
-                    setNewTaskDuration(1);
-                    setNewTaskNotes('');
-                  }}
+                  onClick={resetForm}
                   className="px-4 py-2 rounded-lg bg-coffee-200 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300 hover:bg-coffee-300 dark:hover:bg-coffee-600 transition-colors"
                 >
                   Cancel
@@ -417,9 +711,8 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                   <li
                     key={task.id}
                     onClick={() => handleSelectTask(task.id)}
-                    className={`group flex items-start gap-3 p-3 rounded-lg cursor-pointer bg-coffee-50 dark:bg-coffee-800 ${
-                      selectedTaskId === task.id ? 'ring-2 ring-espresso-500' : ''
-                    }`}
+                    className={`group flex items-start gap-3 p-3 rounded-lg cursor-pointer bg-coffee-50 dark:bg-coffee-800 ${selectedTaskId === task.id ? 'ring-2 ring-espresso-500' : ''
+                      }`}
                   >
                     <button
                       type="button"
@@ -434,8 +727,29 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                     </button>
 
                     <div className="flex-1 min-w-0">
-                      <span className="text-coffee-800 dark:text-coffee-100 block">{task.title}</span>
-                      
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-coffee-800 dark:text-coffee-100">{task.title}</span>
+                        {task.priority && task.priority !== 'Medium' && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Tags */}
+                      {task.tags && task.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {task.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="text-xs px-1.5 py-0.5 rounded-full bg-coffee-100 dark:bg-coffee-700 text-coffee-600 dark:text-coffee-300"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                       {/* Notes preview */}
                       {task.notes && (
                         <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1 line-clamp-1">
@@ -443,13 +757,13 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                         </p>
                       )}
 
-                      <div className="flex items-center gap-3 mt-1">
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
                         {/* Pomodoros */}
                         <div className="text-xs text-coffee-500 flex items-center gap-1">
                           <Coffee className="w-3 h-3" />
                           {task.completed_pomodoros}/{task.estimated_pomodoros}
                         </div>
-                        
+
                         {/* Due Date */}
                         {dueDateInfo && (
                           <div className={`text-xs flex items-center gap-1 ${dueDateInfo.color}`}>
@@ -463,6 +777,13 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                           <div className="text-xs text-coffee-500 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {task.duration_days}d
+                          </div>
+                        )}
+
+                        {/* Category */}
+                        {task.category && task.category !== 'Other' && (
+                          <div className="text-xs text-coffee-500">
+                            📁 {task.category}
                           </div>
                         )}
 

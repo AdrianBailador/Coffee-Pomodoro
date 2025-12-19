@@ -48,6 +48,7 @@ builder.Services.AddSingleton<ISupabaseService, SupabaseService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IPomodoroService, PomodoroService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAIService, AIService>();
 
 // ========== Authentication ==========
 
