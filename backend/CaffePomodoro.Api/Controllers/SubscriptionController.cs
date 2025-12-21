@@ -7,6 +7,8 @@ using CaffePomodoro.Api.DTOs;
 using CaffePomodoro.Api.Models;
 using CaffePomodoro.Api.Services;
 
+using CaffePomodoro.Api.Infrastructure;
+
 namespace CaffePomodoro.Api.Controllers;
 
 [ApiController]
@@ -19,12 +21,12 @@ public class SubscriptionController : ControllerBase
     private readonly ILogger<SubscriptionController> _logger;
 
     public SubscriptionController(
-        Client supabase,
+        ISupabaseService supabaseService,  
         IConfiguration configuration,
         IStripeService stripeService,
         ILogger<SubscriptionController> logger)
     {
-        _supabase = supabase;
+        _supabase = supabaseService.GetClient();  
         _configuration = configuration;
         _stripeService = stripeService;
         _logger = logger;
