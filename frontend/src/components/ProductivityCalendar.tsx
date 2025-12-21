@@ -85,7 +85,7 @@ export function ProductivityCalendar() {
 
   const groupByDate = (sessions: any[]): DayData[] => {
     const counts: { [key: string]: number } = {};
-    
+
     sessions.forEach(session => {
       const date = new Date(session.completed_at).toISOString().split('T')[0];
       counts[date] = (counts[date] || 0) + 1;
@@ -103,7 +103,7 @@ export function ProductivityCalendar() {
     // Current streak
     let currentStreak = 0;
     let checkDate = new Date(today);
-    
+
     while (true) {
       const dateStr = checkDate.toISOString().split('T')[0];
       if (sortedDates.includes(dateStr)) {
@@ -121,7 +121,7 @@ export function ProductivityCalendar() {
     let bestStreak = 0;
     let tempStreak = 0;
     const allDates = [...new Set(sortedDates)].sort();
-    
+
     for (let i = 0; i < allDates.length; i++) {
       if (i === 0) {
         tempStreak = 1;
@@ -129,7 +129,7 @@ export function ProductivityCalendar() {
         const prev = new Date(allDates[i - 1]);
         const curr = new Date(allDates[i]);
         const diffDays = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-        
+
         if (diffDays === 1) {
           tempStreak++;
         } else {
@@ -192,7 +192,7 @@ export function ProductivityCalendar() {
           <Calendar className="w-5 h-5 text-espresso-500" />
           <h3 className="font-semibold text-coffee-800 dark:text-coffee-100">Productivity Calendar</h3>
         </div>
-        
+
         {/* Blurred preview */}
         <div className="filter blur-sm pointer-events-none">
           <div className="grid grid-cols-7 gap-1 mb-4">
@@ -267,13 +267,28 @@ export function ProductivityCalendar() {
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
               <div key={i} className="text-xs text-center text-coffee-500 py-1">{day}</div>
             ))}
-            {getDaysInMonth().map((day, i) => (
-              <div
-                key={i}
-                className={`aspect-square rounded-sm ${day ? getIntensity(day.count) : 'bg-transparent'}`}
-                title={day ? `${day.date}: ${day.count} pomodoros` : ''}
-              />
-            ))}
+
+            {getDaysInMonth().map((day, i) => {
+              // 1. Obtenemos el número del día si existe 'day'
+              // Usamos split para evitar problemas de zona horaria con 'new Date'
+              const dayNumber = day ? parseInt(day.date.split('-')[2]) : null;
+
+              return (
+                <div
+                  key={i}
+                  className={`
+          aspect-square rounded-sm 
+          flex items-center justify-center text-[10px] md:text-xs font-medium 
+          ${day ? getIntensity(day.count) : 'bg-transparent'}
+          ${day ? 'text-coffee-700 dark:text-coffee-100' : ''} 
+        `}
+                  title={day ? `${day.date}: ${day.count} pomodoros` : ''}
+                >
+                  {/* 2. Renderizamos el número aquí */}
+                  {dayNumber}
+                </div>
+              );
+            })}
           </div>
 
           {/* Stats */}
