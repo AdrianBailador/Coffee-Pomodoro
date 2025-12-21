@@ -1,12 +1,18 @@
-import { Sun, Moon, LogOut, User, Settings, Coffee } from 'lucide-react';
+import { Sun, Moon, LogOut, User, Settings, Coffee, Crown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { SettingsModal } from './SettingsModal';
 
-export function Header() {
+interface HeaderProps {
+  onUpgradeClick: () => void;
+}
+
+export function Header({ onUpgradeClick }: HeaderProps) {
   const { user, profile, signIn, logOut, loading } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { isPremium, isLoading: subscriptionLoading } = useSubscription();
   const [showMenu, setShowMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,9 +49,18 @@ export function Header() {
               <Coffee className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-coffee-800 dark:text-coffee-100">
-                Coffee Pomodoro
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-xl font-bold text-coffee-800 dark:text-coffee-100">
+                  Coffee Pomodoro
+                </h1>
+                {/* Premium Badge */}
+                {isPremium && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-espresso-600 text-white text-xs font-medium rounded-full">
+                    <Crown className="w-3 h-3" />
+                    Premium
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-coffee-500 dark:text-coffee-400 hidden sm:block">
                 Productivity with style
               </p>
@@ -54,6 +69,18 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            {/* Upgrade Button (solo si está logueado y no es premium) */}
+            {user && !isPremium && !subscriptionLoading && (
+              <button
+                type="button"
+                onClick={onUpgradeClick}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-espresso-600 text-white text-sm font-medium rounded-full hover:from-amber-600 hover:to-espresso-700 transition-all shadow-md hover:shadow-lg"
+              >
+                <Crown className="w-4 h-4" />
+                Upgrade
+              </button>
+            )}
+
             {/* Theme Toggle */}
             <button
               type="button"
@@ -92,9 +119,16 @@ export function Header() {
                 {showMenu && (
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-coffee-800 rounded-xl shadow-xl border border-coffee-200 dark:border-coffee-700 py-2 animate-fade-in">
                     <div className="px-4 py-2 border-b border-coffee-200 dark:border-coffee-700">
-                      <p className="font-medium text-coffee-800 dark:text-coffee-100 truncate">
-                        {user ? (profile?.displayName || 'User') : 'Guest'}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-coffee-800 dark:text-coffee-100 truncate">
+                          {user ? (profile?.displayName || 'User') : 'Guest'}
+                        </p>
+                        {isPremium && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-espresso-600 text-white text-xs font-medium rounded-full">
+                            <Crown className="w-2.5 h-2.5" />
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-coffee-500 dark:text-coffee-400 truncate">
                         {user ? user.email : 'Not signed in'}
                       </p>
@@ -114,6 +148,21 @@ export function Header() {
                           <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         </svg>
                         Sign in with Google
+                      </button>
+                    )}
+
+                    {/* Upgrade en el menú (visible en móvil) */}
+                    {user && !isPremium && !subscriptionLoading && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMenu(false);
+                          onUpgradeClick();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                      >
+                        <Crown className="w-4 h-4" />
+                        Upgrade to Premium
                       </button>
                     )}
                     

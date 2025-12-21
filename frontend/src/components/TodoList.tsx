@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, Circle, Coffee, ChevronDown, ChevronUp, Calendar, Clock, FileText, X, Sparkles, Tag } from 'lucide-react';
+import { Plus, Trash2, Check, Circle, Coffee, ChevronDown, ChevronUp, Calendar, Clock, FileText, X, Sparkles, Tag, Lock } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { getTaskSuggestions } from '../services/aiService';
 
 interface Task {
@@ -21,10 +22,14 @@ interface Task {
 interface TodoListProps {
   selectedTaskId?: string;
   onSelectTask: (taskId: string | undefined) => void;
+  onUpgradeClick?: () => void;
 }
 
-export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
+const MAX_FREE_TASKS = 4;
+
+export function TodoList({ selectedTaskId, onSelectTask, onUpgradeClick }: TodoListProps) {
   const { user } = useAuth();
+  const { isPremium } = useSubscription();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
@@ -93,10 +98,17 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
   const handleGetAISuggestions = async () => {
     if (!newTaskTitle.trim()) return;
 
+    // Check if premium
+    if (!isPremium) {
+      if (onUpgradeClick) {
+        onUpgradeClick();
+      }
+      return;
+    }
+
     setAiLoading(true);
     try {
       const suggestions = await getTaskSuggestions(newTaskTitle);
-      // Store suggestions without applying them
       setAiSuggestedTags(suggestions.tags);
       setAiSuggestedCategory(suggestions.category);
       setAiSuggestedPriority(suggestions.priority);
@@ -108,9 +120,28 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
     setAiLoading(false);
   };
 
+  const handleOpenAddForm = () => {
+    // Check task limit for free users
+    if (!isPremium && activeTasks.length >= MAX_FREE_TASKS) {
+      if (onUpgradeClick) {
+        onUpgradeClick();
+      }
+      return;
+    }
+    setShowAddForm(true);
+  };
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
+
+    // Double check task limit
+    if (!isPremium && activeTasks.length >= MAX_FREE_TASKS) {
+      if (onUpgradeClick) {
+        onUpgradeClick();
+      }
+      return;
+    }
 
     const newTask: Partial<Task> = {
       title: newTaskTitle.trim(),
@@ -295,6 +326,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
 
   const activeTasks = tasks.filter(t => !t.is_completed);
   const completedTasks = tasks.filter(t => t.is_completed);
+  const tasksRemaining = MAX_FREE_TASKS - activeTasks.length;
 
   if (loading) {
     return (
@@ -363,7 +395,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
         <div className="flex items-center gap-3">
           <Coffee className="w-5 h-5 text-espresso-500" />
           <h2 className="text-lg font-semibold text-coffee-800 dark:text-coffee-100">
-            Tasks ({activeTasks.length})
+            Tasks ({activeTasks.length}{!isPremium && `/${MAX_FREE_TASKS}`})
           </h2>
         </div>
         {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -371,17 +403,40 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
 
       {isExpanded && (
         <div className="p-4 space-y-4">
+          {/* Task Limit Warning for Free Users */}
+          {!isPremium && tasksRemaining <= 1 && tasksRemaining > 0 && (
+            <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                {tasksRemaining} task remaining on free plan
+              </p>
+            </div>
+          )}
+
           {/* Add Task Button / Form */}
           {!showAddForm ? (
             <button
-              onClick={() => setShowAddForm(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-coffee-200 dark:border-coffee-700 rounded-xl text-coffee-500 hover:border-espresso-500 hover:text-espresso-500 transition-colors"
+              onClick={handleOpenAddForm}
+              className={`w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-colors ${
+                !isPremium && activeTasks.length >= MAX_FREE_TASKS
+                  ? 'border-coffee-200 dark:border-coffee-700 text-coffee-400 cursor-pointer'
+                  : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 hover:border-espresso-500 hover:text-espresso-500'
+              }`}
             >
-              <Plus className="w-5 h-5" />
-              <span>Add new task</span>
+              {!isPremium && activeTasks.length >= MAX_FREE_TASKS ? (
+                <>
+                  <Lock className="w-5 h-5" />
+                  <span>Upgrade to add more tasks</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5" />
+                  <span>Add new task</span>
+                </>
+              )}
             </button>
           ) : (
-            <form onSubmit={handleAddTask} className="space-y-3 p-4 bg-coffee-50 dark:bg-coffee-800 rounded-xl">
+            <form onSubmit={handleAddTask} className="space-y-3 p-4 bg-coffee-50 dark:bg-coffee-800 rounded-xl overflow-hidden">
               {/* Task Title + AI Button */}
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -404,13 +459,20 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                   type="button"
                   onClick={handleGetAISuggestions}
                   disabled={!newTaskTitle.trim() || aiLoading}
-                  className="px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white disabled:opacity-50 hover:from-purple-600 hover:to-indigo-600 transition-all flex items-center gap-1"
-                  aria-label="Get AI suggestions"
+                  className={`px-3 py-2 rounded-lg text-white disabled:opacity-50 transition-all flex items-center gap-1 ${
+                    isPremium
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500'
+                  }`}
+                  aria-label={isPremium ? 'Get AI suggestions' : 'AI suggestions (Premium)'}
+                  title={isPremium ? 'Get AI suggestions' : 'Upgrade to Premium for AI suggestions'}
                 >
                   {aiLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
+                  ) : isPremium ? (
                     <Sparkles className="w-5 h-5" />
+                  ) : (
+                    <Lock className="w-5 h-5" />
                   )}
                 </button>
               </div>
@@ -680,6 +742,7 @@ export function TodoList({ selectedTaskId, onSelectTask }: TodoListProps) {
                   />
                 </div>
               </div>
+
               {/* Buttons */}
               <div className="flex gap-2">
                 <button

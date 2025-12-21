@@ -1,17 +1,22 @@
 import { useState } from 'react';
+import { Crown } from 'lucide-react';
 import { Header } from './components/Header';
 import { Timer } from './components/Timer';
 import { TodoList } from './components/TodoList';
 import { ProductivityCalendar } from './components/ProductivityCalendar';
 import { LoginScreen } from './components/LoginScreen';
+import { UpgradeModal } from './components/UpgradeModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { SubscriptionProvider, useSubscription } from './contexts/SubscriptionContext';
 import { SessionType } from './types';
 import { ConnectionStatus } from './components/ConnectionStatus';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { isPremium, isLoading: subscriptionLoading } = useSubscription();
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const isGuest = localStorage.getItem('caffe-pomodoro-guest') === 'true';
 
@@ -38,13 +43,13 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-cream-100 to-coffee-100 dark:from-coffee-900 dark:via-coffee-900 dark:to-espresso-900 transition-colors duration-500">
-      <Header />
-      
+      <Header onUpgradeClick={() => setShowUpgradeModal(true)} />
+
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-[1fr,380px] gap-8">
           {/* Timer Section */}
           <section className="glass-card p-8">
-            <Timer 
+            <Timer
               selectedTaskId={selectedTaskId}
               onSessionComplete={handleSessionComplete}
             />
@@ -52,13 +57,32 @@ function AppContent() {
 
           {/* Sidebar */}
           <aside className="space-y-4">
-            <TodoList 
+            <TodoList
               selectedTaskId={selectedTaskId}
               onSelectTask={setSelectedTaskId}
+              onUpgradeClick={() => setShowUpgradeModal(true)}
             />
-            
+
             {/* Productivity Calendar */}
             <ProductivityCalendar />
+
+            {/* Upgrade Banner (solo si no es premium y está logueado) */}
+            {user && !isPremium && !subscriptionLoading && (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="w-full glass-card p-4 border-2 border-amber-400 dark:border-amber-600 hover:border-amber-500 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-espresso-600 flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-coffee-800 dark:text-coffee-100">Upgrade to Premium</p>
+                    <p className="text-sm text-coffee-500 dark:text-coffee-400">Unlock all features</p>
+                  </div>
+                </div>
+              </button>
+            )}
 
             {/* Guest Mode Banner */}
             {isGuest && !user && (
@@ -76,8 +100,15 @@ function AppContent() {
       <footer className="text-center py-6 text-sm text-coffee-500 dark:text-coffee-400">
         <p>Made with ☕ and 💜 by Adrian</p>
       </footer>
-        {/* Connection Status */}
+
+      {/* Connection Status */}
       <ConnectionStatus />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
     </div>
   );
 }
@@ -86,7 +117,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <SubscriptionProvider>
+          <AppContent />
+        </SubscriptionProvider>
       </AuthProvider>
     </ThemeProvider>
   );
