@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Coffee, Leaf, Sunrise, RotateCcw } from 'lucide-react';
+import { X, Coffee, Leaf, Sunrise, RotateCcw, Mail } from 'lucide-react';
 
 interface Settings {
   workDuration: number;
@@ -159,6 +159,23 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               onChange={(e) => setSettings({ ...settings, sessionsBeforeLongBreak: Number(e.target.value) })}
               className="w-full px-4 py-2 rounded-lg border border-coffee-200 dark:border-coffee-600 bg-white dark:bg-coffee-800 text-coffee-800 dark:text-coffee-100 focus:outline-none focus:ring-2 focus:ring-espresso-500"
             />
+          </div>
+
+          {/* Support Section */}
+          <div className="pt-4 border-t border-coffee-200 dark:border-coffee-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-coffee-700 dark:text-coffee-200 mb-2">
+              <Mail className="w-4 h-4 text-espresso-500" />
+              Support
+            </div>
+            <p className="text-sm text-coffee-500 dark:text-coffee-400">
+              Questions, feedback or issues? Contact us at{' '}
+              <a 
+                href="mailto:abailador.dev@gmail.com"
+                className="text-espresso-500 hover:underline"
+              >
+                abailador.dev@gmail.com
+              </a>
+            </p>
           </div>
         </div>
 

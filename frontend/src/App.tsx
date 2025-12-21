@@ -97,8 +97,16 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-6 text-sm text-coffee-500 dark:text-coffee-400">
+      <footer className="text-center py-6 text-sm text-coffee-500 dark:text-coffee-400 space-y-1">
         <p>Made with ☕ and 💜 by Adrian</p>
+        <p>
+          <a
+            href="mailto:abailador.dev@gmail.com"
+            className="hover:text-espresso-500 transition-colors"
+          >
+            abailador.dev@gmail.com
+          </a>
+        </p>
       </footer>
 
       {/* Connection Status */}
