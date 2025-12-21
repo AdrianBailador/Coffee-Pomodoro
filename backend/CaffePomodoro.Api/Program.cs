@@ -49,6 +49,7 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IPomodoroService, PomodoroService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAIService, AIService>();
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 // ========== Authentication ==========
 
