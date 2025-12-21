@@ -288,12 +288,12 @@ export function ProductivityCalendar() {
             })}
           </div>
 
-          {/* New Stats Design (English UK) */}
+          {/* New Stats Design */}
           <div className="grid grid-cols-4 gap-3 mt-6">
-            
+
             {/* Streak Card */}
             <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <Flame className="w-5 h-5 text-orange-500 mb-1" />
+              <Flame className="w-6 h-6 text-orange-500 mb-1 drop-shadow-sm" />
               <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
                 {stats.currentStreak}
               </span>
@@ -304,7 +304,7 @@ export function ProductivityCalendar() {
 
             {/* Best Card */}
             <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <Trophy className="w-5 h-5 text-amber-500 mb-1" />
+              <Trophy className="w-6 h-6 text-amber-500 mb-1 drop-shadow-sm" />
               <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
                 {stats.bestStreak}
               </span>
@@ -313,9 +313,9 @@ export function ProductivityCalendar() {
               </span>
             </div>
 
-            {/* Week Card */}
+            {/* Week Card - Coffee icon made brighter */}
             <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <Coffee className="w-5 h-5 text-espresso-500 mb-1" />
+              <Coffee className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mb-1 drop-shadow-sm" />
               <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
                 {stats.thisWeek}
               </span>
@@ -324,9 +324,9 @@ export function ProductivityCalendar() {
               </span>
             </div>
 
-            {/* Month Card */}
+            {/* Month Card - Calendar icon made blue/indigo */}
             <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <Calendar className="w-5 h-5 text-espresso-500 mb-1" />
+              <Calendar className="w-6 h-6 text-blue-500 mb-1 drop-shadow-sm" />
               <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
                 {stats.thisMonth}
               </span>
