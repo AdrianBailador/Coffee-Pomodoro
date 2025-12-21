@@ -269,57 +269,70 @@ export function ProductivityCalendar() {
             ))}
 
             {getDaysInMonth().map((day, i) => {
-              // 1. Obtenemos el número del día si existe 'day'
-              // Usamos split para evitar problemas de zona horaria con 'new Date'
               const dayNumber = day ? parseInt(day.date.split('-')[2]) : null;
 
               return (
                 <div
                   key={i}
                   className={`
-          aspect-square rounded-sm 
-          flex items-center justify-center text-[10px] md:text-xs font-medium 
-          ${day ? getIntensity(day.count) : 'bg-transparent'}
-          ${day ? 'text-coffee-700 dark:text-coffee-100' : ''} 
-        `}
+                    aspect-square rounded-sm 
+                    flex items-center justify-center text-[10px] md:text-xs font-medium 
+                    ${day ? getIntensity(day.count) : 'bg-transparent'}
+                    ${day ? 'text-coffee-700 dark:text-coffee-100' : ''} 
+                  `}
                   title={day ? `${day.date}: ${day.count} pomodoros` : ''}
                 >
-                  {/* 2. Renderizamos el número aquí */}
                   {dayNumber}
                 </div>
               );
             })}
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-2">
-            <div className="bg-coffee-50 dark:bg-coffee-800 rounded-lg p-2 text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Flame className="w-4 h-4 text-orange-500" />
-                <span className="text-lg font-bold text-espresso-500">{stats.currentStreak}</span>
-              </div>
-              <div className="text-xs text-coffee-500">Streak</div>
+          {/* New Stats Design (English UK) */}
+          <div className="grid grid-cols-4 gap-3 mt-6">
+            
+            {/* Streak Card */}
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
+              <Flame className="w-5 h-5 text-orange-500 mb-1" />
+              <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
+                {stats.currentStreak}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-coffee-500 mt-1">
+                Streak
+              </span>
             </div>
-            <div className="bg-coffee-50 dark:bg-coffee-800 rounded-lg p-2 text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Trophy className="w-4 h-4 text-amber-500" />
-                <span className="text-lg font-bold text-espresso-500">{stats.bestStreak}</span>
-              </div>
-              <div className="text-xs text-coffee-500">Best</div>
+
+            {/* Best Card */}
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
+              <Trophy className="w-5 h-5 text-amber-500 mb-1" />
+              <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
+                {stats.bestStreak}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-coffee-500 mt-1">
+                Best
+              </span>
             </div>
-            <div className="bg-coffee-50 dark:bg-coffee-800 rounded-lg p-2 text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Coffee className="w-4 h-4 text-espresso-500" />
-                <span className="text-lg font-bold text-espresso-500">{stats.thisWeek}</span>
-              </div>
-              <div className="text-xs text-coffee-500">Week</div>
+
+            {/* Week Card */}
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
+              <Coffee className="w-5 h-5 text-espresso-500 mb-1" />
+              <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
+                {stats.thisWeek}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-coffee-500 mt-1">
+                Week
+              </span>
             </div>
-            <div className="bg-coffee-50 dark:bg-coffee-800 rounded-lg p-2 text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Calendar className="w-4 h-4 text-espresso-500" />
-                <span className="text-lg font-bold text-espresso-500">{stats.thisMonth}</span>
-              </div>
-              <div className="text-xs text-coffee-500">Month</div>
+
+            {/* Month Card */}
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-100 dark:border-coffee-700 shadow-sm rounded-xl p-3 flex flex-col items-center justify-center transition-all hover:shadow-md">
+              <Calendar className="w-5 h-5 text-espresso-500 mb-1" />
+              <span className="text-2xl font-bold text-coffee-800 dark:text-coffee-100 leading-none">
+                {stats.thisMonth}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-coffee-500 mt-1">
+                Month
+              </span>
             </div>
           </div>
         </>
