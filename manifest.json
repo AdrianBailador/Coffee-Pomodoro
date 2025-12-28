@@ -1,0 +1,24 @@
+{
+  "name": "Coffee Pomodoro",
+  "short_name": "Pomodoro",
+  "description": "Productivity with style - A beautiful Pomodoro timer",
+  "start_url": "/Coffee-Pomodoro/",
+  "display": "standalone",
+  "background_color": "#1a1412",
+  "theme_color": "#6b4423",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/Coffee-Pomodoro/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Coffee-Pomodoro/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
